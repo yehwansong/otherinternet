@@ -1,116 +1,37 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>Hash Language Demo</title>
-
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;700&display=swap" rel="stylesheet">
-
-<style>
-html, body {
-    margin: 0;
-    width: 100%;
-    height: 100%;
-}
-
-body {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background: #f7f5ee;
-    font-family: "Noto Sans", sans-serif;
-    text-align: center;
-    padding: 40px;
-}
-
-#text {
-    font-size: min(10vw, 120px);
-    font-weight: 700;
-    line-height: 1.2;
-    max-width: 90vw;
-}
-</style>
-</head>
-<body>
-
-<div id="text"></div>
-
 <script>
-const phrases = {
-    "1":  "I let the dog out.",
-    "2":  "Dejé salir al perro.",
-    "3":  "Ich ließ den Hund raus.",
-    "4":  "犬を外に出した。",
-    "5":  "J’ai laissé sortir le chien.",
-    "6":  "Eu deixei o cachorro sair.",
-    "7":  "Я выпустил собаку.",
-    "8":  "Ho fatto uscire il cane.",
-    "9":  "Ik liet de hond naar buiten.",
-    "10": "Wypuściłem psa.",
-    "11": "Köpeği dışarı çıkardım.",
-    "12": "我把狗放出去了。",
-    "13": "من سگ را بیرون گذاشتم.",
-    "14": "Tôi đã thả con chó ra ngoài.",
-    "15": "Pustil jsem psa ven.",
-    "16": "Saya membiarkan anjing itu keluar.",
-    "17": "나는 개를 밖으로 내보냈다.",
-    "18": "Я випустив собаку.",
-    "19": "Kiengedtem a kutyát.",
-    "20": "أخرجتُ الكلب."
-};
+let cycleTimer = null;
+let colorIndex = 0;
+let touchCount = 0;
 
-function updateText() {
-    const hash = window.location.hash.replace("#", "");
-    document.getElementById("text").textContent =
-        phrases[hash] || phrases["1"];
-
-    document.body.dir =
-        hash === "13" || hash === "20"
-            ? "rtl"
-            : "ltr";
+function startCycling() {
+  if (!cycleTimer) {
+    cycleTimer = setInterval(() => {
+      document.body.className = "class-" + (colorIndex % 4);
+      colorIndex++;
+    }, 100);
+  }
 }
 
-updateText();
-window.addEventListener("hashchange", updateText);
+function stopCycling() {
+  if (touchCount <= 0) {
+    clearInterval(cycleTimer);
+    cycleTimer = null;
+    document.body.className = "";
+  }
+}
 
-  
-// Force reload every 30 seconds with cache-busting timestamp
-setInterval(() => {
-  const url = new URL(window.location.href);
-  url.searchParams.set("_t", Date.now());
-  window.location.replace(url.toString());
-}, 30000);
+document.addEventListener("touchstart", (e) => {
+  touchCount = e.touches.length;
+  startCycling();
+}, { passive: true });
 
+document.addEventListener("touchend", (e) => {
+  touchCount = e.touches.length;
+  stopCycling();
+}, { passive: true });
+
+document.addEventListener("touchcancel", (e) => {
+  touchCount = e.touches.length;
+  stopCycling();
+}, { passive: true });
 </script>
-
-</body>
-</html>
-
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1.0">
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-  <meta http-equiv="Pragma" content="no-cache">
-  <meta http-equiv="Expires" content="0">
-  <title>Color Touch Flash</title>
-
-  <style>
-    body {
-      margin: 0;
-      height: 100vh;
-      background-color: white;
-    }
-
-    body.class-0 { background-color: #ff2400; }
-    body.class-1 { background-color: #fff200; }
-    body.class-2 { background-color: #0033ed; }
-    body.class-3 { background-color: #00ef77; }
-  </style>
-</head>
-<body>
