@@ -1,37 +1,78 @@
+<body>
+
+<div id="text"></div>
+
 <script>
+const phrases = {
+    "1":  "I let the dog out.",
+    "2":  "Dejé salir al perro.",
+    "3":  "Ich ließ den Hund raus.",
+    "4":  "犬を外に出した。",
+    "5":  "J’ai laissé sortir le chien.",
+    "6":  "Eu deixei o cachorro sair.",
+    "7":  "Я выпустил собаку.",
+    "8":  "Ho fatto uscire il cane.",
+    "9":  "Ik liet de hond naar buiten.",
+    "10": "Wypuściłem psa.",
+    "11": "Köpeği dışarı çıkardım.",
+    "12": "我把狗放出去了。",
+    "13": "من سگ را بیرون گذاشتم.",
+    "14": "Tôi đã thả con chó ra ngoài.",
+    "15": "Pustil jsem psa ven.",
+    "16": "Saya membiarkan anjing itu keluar.",
+    "17": "나는 개를 밖으로 내보냈다.",
+    "18": "Я випустив собаку.",
+    "19": "Kiengedtem a kutyát.",
+    "20": "أخرجتُ الكلب."
+};
+
+function updateText() {
+    const hash = window.location.hash.replace("#", "");
+    document.getElementById("text").textContent =
+        phrases[hash] || phrases["1"];
+
+    document.body.dir =
+        hash === "13" || hash === "20"
+            ? "rtl"
+            : "ltr";
+}
+
+updateText();
+window.addEventListener("hashchange", updateText);
+
+
+// Touch color change until touch ends
 let cycleTimer = null;
 let colorIndex = 0;
-let touchCount = 0;
 
-function startCycling() {
-  if (!cycleTimer) {
+function startColorCycle() {
+    if (cycleTimer) return;
+
     cycleTimer = setInterval(() => {
-      document.body.className = "class-" + (colorIndex % 4);
-      colorIndex++;
+        document.body.classList.remove("class-0", "class-1", "class-2", "class-3");
+        document.body.classList.add("class-" + (colorIndex % 4));
+        colorIndex++;
     }, 100);
-  }
 }
 
-function stopCycling() {
-  if (touchCount <= 0) {
+function stopColorCycle() {
     clearInterval(cycleTimer);
     cycleTimer = null;
-    document.body.className = "";
-  }
+    document.body.classList.remove("class-0", "class-1", "class-2", "class-3");
 }
 
-document.addEventListener("touchstart", (e) => {
-  touchCount = e.touches.length;
-  startCycling();
-}, { passive: true });
+document.addEventListener("touchstart", startColorCycle, { passive: true });
+document.addEventListener("touchend", stopColorCycle, { passive: true });
+document.addEventListener("touchcancel", stopColorCycle, { passive: true });
 
-document.addEventListener("touchend", (e) => {
-  touchCount = e.touches.length;
-  stopCycling();
-}, { passive: true });
 
-document.addEventListener("touchcancel", (e) => {
-  touchCount = e.touches.length;
-  stopCycling();
-}, { passive: true });
+// Force reload every 30 seconds with cache-busting timestamp
+setInterval(() => {
+  const url = new URL(window.location.href);
+  url.searchParams.set("_t", Date.now());
+  window.location.replace(url.toString());
+}, 30000);
+
 </script>
+
+</body>
