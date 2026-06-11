@@ -1,3 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Hash Language Demo</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;700&display=swap" rel="stylesheet">
+
+<style>
+html, body {
+    margin: 0;
+    width: 100%;
+    height: 100%;
+}
+
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #f7f5ee;
+    font-family: "Noto Sans", sans-serif;
+    text-align: center;
+    padding: 40px;
+}
+
+body.class-0 { background-color: #ff2400; }
+body.class-1 { background-color: #fff200; }
+body.class-2 { background-color: #0033ed; }
+body.class-3 { background-color: #00ef77; }
+
+#text {
+    font-size: min(10vw, 120px);
+    font-weight: 700;
+    line-height: 1.2;
+    max-width: 90vw;
+}
+</style>
+</head>
 <body>
 
 <div id="text"></div>
@@ -41,23 +83,32 @@ updateText();
 window.addEventListener("hashchange", updateText);
 
 
-// Touch color change until touch ends
+// Touch color change while touching
 let cycleTimer = null;
 let colorIndex = 0;
+
+function setColor() {
+    document.body.classList.remove("class-0", "class-1", "class-2", "class-3");
+    document.body.classList.add("class-" + (colorIndex % 4));
+    colorIndex++;
+}
 
 function startColorCycle() {
     if (cycleTimer) return;
 
+    setColor();
+
     cycleTimer = setInterval(() => {
-        document.body.classList.remove("class-0", "class-1", "class-2", "class-3");
-        document.body.classList.add("class-" + (colorIndex % 4));
-        colorIndex++;
+        setColor();
     }, 100);
 }
 
 function stopColorCycle() {
-    clearInterval(cycleTimer);
-    cycleTimer = null;
+    if (cycleTimer) {
+        clearInterval(cycleTimer);
+        cycleTimer = null;
+    }
+
     document.body.classList.remove("class-0", "class-1", "class-2", "class-3");
 }
 
@@ -76,3 +127,4 @@ setInterval(() => {
 </script>
 
 </body>
+</html>
