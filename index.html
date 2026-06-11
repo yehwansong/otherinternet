@@ -3,54 +3,53 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <title>Hash Language Demo</title>
-
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;700&display=swap" rel="stylesheet">
-
 <style>
 html, body {
     margin: 0;
     width: 100%;
     height: 100%;
 }
-
 body {
     display: flex;
-    justify-content: center;
+    justify-content: flex-start;
     align-items: center;
     background: #f7f5ee;
     font-family: "Noto Sans", sans-serif;
     text-align: center;
-    padding: 40px;
+    padding: 0;
+    overflow: hidden;
+    box-sizing: border-box;
 }
-
 body.class-0 { background-color: #ff2400; }
 body.class-1 { background-color: #fff200; }
 body.class-2 { background-color: #0033ed; }
 body.class-3 { background-color: #00ef77; }
-
 #text {
-    font-size: min(10vw, 120px);
+    font-size: 100px;    
     font-weight: 700;
-    line-height: 1.2;
-    max-width: 90vw;
+    line-height: 0.8;
+    writing-mode: vertical-lr;
+    text-orientation: mixed;
+    transform: rotate(0deg) scale(0.6);
+    white-space: nowrap;
+    text-transform: uppercase;
+    transform-origin: left top
 }
 </style>
 </head>
 <body>
-
 <div id="text"></div>
-
 <script>
 const phrases = {
     "1":  "I let the dog out.",
     "2":  "Dejé salir al perro.",
     "3":  "Ich ließ den Hund raus.",
     "4":  "犬を外に出した。",
-    "5":  "J’ai laissé sortir le chien.",
+    "5":  "J'ai laissé sortir le chien.",
     "6":  "Eu deixei o cachorro sair.",
     "7":  "Я выпустил собаку.",
     "8":  "Ho fatto uscire il cane.",
@@ -67,64 +66,64 @@ const phrases = {
     "19": "Kiengedtem a kutyát.",
     "20": "أخرجتُ الكلب."
 };
+function fitText() {
+    const el = document.getElementById("text");
+    const availH = window.innerHeight * 0.92;
 
+    // In vertical writing mode, offsetWidth = the character height (font size dimension)
+    let lo = 4, hi = 2000;
+    while (hi - lo > 1) {
+        const mid = (lo + hi) / 2;
+        el.style.fontSize = mid + "px";
+        if (el.offsetWidth <= availH) lo = mid;
+        else hi = mid;
+    }
+    el.style.fontSize = lo + "px";
+}
 function updateText() {
     const hash = window.location.hash.replace("#", "");
     document.getElementById("text").textContent =
         phrases[hash] || phrases["1"];
-
     document.body.dir =
         hash === "13" || hash === "20"
             ? "rtl"
             : "ltr";
+    fitText();
 }
-
 updateText();
 window.addEventListener("hashchange", updateText);
-
-
+window.addEventListener("resize", fitText);
 // Touch color change while touching
 let cycleTimer = null;
 let colorIndex = 0;
-
 function setColor() {
     document.body.classList.remove("class-0", "class-1", "class-2", "class-3");
     document.body.classList.add("class-" + (colorIndex % 4));
     colorIndex++;
 }
-
 function startColorCycle() {
     if (cycleTimer) return;
-
     setColor();
-
     cycleTimer = setInterval(() => {
         setColor();
     }, 100);
 }
-
 function stopColorCycle() {
     if (cycleTimer) {
         clearInterval(cycleTimer);
         cycleTimer = null;
     }
-
     document.body.classList.remove("class-0", "class-1", "class-2", "class-3");
 }
-
 document.addEventListener("touchstart", startColorCycle, { passive: true });
 document.addEventListener("touchend", stopColorCycle, { passive: true });
 document.addEventListener("touchcancel", stopColorCycle, { passive: true });
-
-
 // Force reload every 30 seconds with cache-busting timestamp
 setInterval(() => {
   const url = new URL(window.location.href);
   url.searchParams.set("_t", Date.now());
   window.location.replace(url.toString());
 }, 30000);
-
 </script>
-
 </body>
 </html>
