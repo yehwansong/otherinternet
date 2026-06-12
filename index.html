@@ -263,11 +263,11 @@ function setColor() {
 }
 
 function moveTextDown() {
-    textY += 18;
+    textY -= 80;  // 위로 이동
 
-    if (textY > MAX_SCROLL) {
+    if (textY < 0) {
         textEl.style.transition = "none";
-        textY = 0;
+        textY = MAX_SCROLL;  // 맨 위 도달 시 맨 아래로 리셋
         applyTextTransform();
 
         setTimeout(function() {
