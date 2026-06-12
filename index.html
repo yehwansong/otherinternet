@@ -4,51 +4,120 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Hash Language Demo</title>
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;700&display=swap" rel="stylesheet">
+
 <style>
 html, body {
     margin: 0;
     width: 100%;
     height: 100%;
-    background: url(background.png);
-    background-size: cover;
 }
+
 body {
+    background: url(background.png);
+    background-size: auto 400%;
+    background-repeat: no-repeat;
+    background-position-x: center;
+    overflow: hidden;
+    font-family: "Noto Sans", sans-serif;
+}
+
+body.bg-top { background-position-y: 0%; }
+body.bg-mid-top { background-position-y: 33.333%; }
+body.bg-mid { background-position-y: 66.666%; }
+body.bg-low { background-position-y: 100%; }
+
+#overlay {
+    position: fixed;
+    inset: 0;
     display: flex;
     justify-content: flex-start;
     align-items: center;
-    /*background: #f7f5ee;*/
-    font-family: "Noto Sans", sans-serif;
-    text-align: center;
-    padding: 0;
-    overflow: hidden;
-    box-sizing: border-box;
-    filter: drop-shadow(2px 4px 46px black);
     color: white;
-    font-weight: 300;
+    font-weight: 500;
+    filter: drop-shadow(2px 4px 46px black);
+    background: transparent;
+    transition: background-color 0.05s linear;
 }
-body.class-0 { background-color: #ff2400; }
-body.class-1 { background-color: #fff200; }
-body.class-2 { background-color: #0033ed; }
-body.class-3 { background-color: #00ef77; }
+
+#overlay.class-0 { background-color: rgba(255, 36, 0, 0.7); }
+#overlay.class-1 { background-color: rgba(255, 242, 0, 0.7); }
+#overlay.class-2 { background-color: rgba(0, 51, 237, 0.7); }
+#overlay.class-3 { background-color: rgba(0, 239, 119, 0.7); }
+
 #text {
-    font-size: 100px;    
+    font-size: 100px;
     font-weight: 700;
     line-height: 0.8;
     writing-mode: vertical-lr;
     text-orientation: mixed;
-    transform: rotate(0deg) scale(0.6);
+    transform: scale(0.6);
+    transform-origin: left top;
     white-space: nowrap;
     text-transform: uppercase;
-    transform-origin: left top
+    transition: translate 0.08s linear;
+}
+
+#rankDisplay {
+    position: fixed;
+    right: 20px;
+    bottom: 20px;
+    color: white;
+    font-size: 18px;
+    font-weight: 700;
+    z-index: 10;
+    text-align: right;
+    filter: drop-shadow(0 0 8px black);
 }
 </style>
 </head>
+
 <body>
-<div id="text"></div>
-<script>
+
+<div id="overlay">
+    <div id="text"></div>
+</div>
+
+<div id="rankDisplay"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+import {
+    getDatabase,
+    ref,
+    onValue,
+    runTransaction,
+    serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js";
+
+/* ----------------------------- */
+/* Firebase 설정                 */
+/* ----------------------------- */
+const firebaseConfig = {
+  apiKey: "AIzaSyBb7Hf1EfZFt4ZBV7D-83ZoYh2_268-fA0",
+  authDomain: "internetmap-40f5f.firebaseapp.com",
+  databaseURL: "https://internetmap-40f5f-default-rtdb.firebaseio.com",
+  projectId: "internetmap-40f5f",
+  storageBucket: "internetmap-40f5f.firebasestorage.app",
+  messagingSenderId: "58899228247",
+  appId: "1:58899228247:web:d04ea480cc5ffbf4b06512",
+  measurementId: "G-TR5860MX5M"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+const rankingRef = ref(db, "touchRanking/order");
+const lastTouchRef = ref(db, "touchRanking/lastTouch");
+
+
+/* ----------------------------- */
+/* Text / language               */
+/* ----------------------------- */
+
 const phrases = {
     "1":  "I let the dog out.",
     "2":  "Dejé salir al perro.",
@@ -62,73 +131,199 @@ const phrases = {
     "10": "Wypuściłem psa.",
     "11": "Köpeği dışarı çıkardım.",
     "12": "我把狗放出去了。",
-    "13": "من سگ را بیرون گذاشتم.",
+    "13": "Saya membiarkan anjing itu keluar.",
     "14": "Tôi đã thả con chó ra ngoài.",
     "15": "Pustil jsem psa ven.",
-    "16": "Saya membiarkan anjing itu keluar.",
-    "17": "나는 개를 밖으로 내보냈다.",
+    "16": "나는 개를 밖으로 내보냈다.",
+    "17": "من سگ را بیرون گذاشتم.",
     "18": "Я випустив собаку.",
     "19": "Kiengedtem a kutyát.",
     "20": "أخرجتُ الكلب."
 };
+
+const bgGroups = {
+    top: ["2", "7", "11", "15", "19"],
+    mid_top: ["3", "5", "10", "16", "18"],
+    mid: ["4", "1", "20", "17"],
+    low: ["6", "8", "9", "12", "13", "14"]
+};
+
+function getCurrentHash() {
+    const hash = window.location.hash.replace("#", "");
+    return phrases[hash] ? hash : "1";
+}
+
+function setBodyBackgroundClass(hash) {
+    document.body.classList.remove("bg-top", "bg-mid-top", "bg-mid", "bg-low");
+
+    if (bgGroups.top.includes(hash)) {
+        document.body.classList.add("bg-top");
+    } else if (bgGroups.mid_top.includes(hash)) {
+        document.body.classList.add("bg-mid-top");
+    } else if (bgGroups.mid.includes(hash)) {
+        document.body.classList.add("bg-mid");
+    } else if (bgGroups.low.includes(hash)) {
+        document.body.classList.add("bg-low");
+    }
+}
+
 function fitText() {
     const el = document.getElementById("text");
     const availH = window.innerHeight * 0.92;
 
-    // In vertical writing mode, offsetWidth = the character height (font size dimension)
-    let lo = 4, hi = 2000;
+    let lo = 4;
+    let hi = 2000;
+
     while (hi - lo > 1) {
         const mid = (lo + hi) / 2;
         el.style.fontSize = mid + "px";
-        if (el.offsetWidth <= availH) lo = mid;
-        else hi = mid;
+
+        if (el.offsetWidth <= availH) {
+            lo = mid;
+        } else {
+            hi = mid;
+        }
     }
+
     el.style.fontSize = lo + "px";
 }
+
 function updateText() {
-    const hash = window.location.hash.replace("#", "");
-    document.getElementById("text").textContent =
-        phrases[hash] || phrases["1"];
+    const hash = getCurrentHash();
+
+    document.getElementById("text").textContent = phrases[hash];
+
+    setBodyBackgroundClass(hash);
+
     document.body.dir =
-        hash === "13" || hash === "20"
+        hash === "17" || hash === "20"
             ? "rtl"
             : "ltr";
+
     fitText();
 }
+
 updateText();
+
 window.addEventListener("hashchange", updateText);
 window.addEventListener("resize", fitText);
-// Touch color change while touching
+
+
+/* ----------------------------- */
+/* Firebase ranking              */
+/* ----------------------------- */
+
+function updateTouchRanking(hash) {
+    runTransaction(rankingRef, (current) => {
+        let order = Array.isArray(current) ? current : [];
+
+        order = order.filter(item => item !== hash);
+        order.unshift(hash);
+
+        return order.slice(0, 20);
+    });
+
+    runTransaction(lastTouchRef, () => {
+        return {
+            hash: hash,
+            time: serverTimestamp()
+        };
+    });
+}
+
+onValue(rankingRef, (snapshot) => {
+    const order = snapshot.val() || [];
+    const rankDisplay = document.getElementById("rankDisplay");
+
+    rankDisplay.innerHTML = order
+        .map((hash, index) => `${index + 1}. #${hash}`)
+        .join("<br>");
+});
+
+
+/* ----------------------------- */
+/* Color flash + text movement   */
+/* ----------------------------- */
+
+const overlay = document.getElementById("overlay");
+const textEl = document.getElementById("text");
+
 let cycleTimer = null;
+let stopTimer = null;
 let colorIndex = 0;
+
+let textY = 0;
+const MAX_SCROLL = 3000;
+
 function setColor() {
-    document.body.classList.remove("class-0", "class-1", "class-2", "class-3");
-    document.body.classList.add("class-" + (colorIndex % 4));
+    overlay.classList.remove("class-0", "class-1", "class-2", "class-3");
+    overlay.classList.add("class-" + (colorIndex % 4));
     colorIndex++;
 }
-function startColorCycle() {
-    if (cycleTimer) return;
-    setColor();
-    cycleTimer = setInterval(() => {
-        setColor();
-    }, 100);
+
+function moveTextDown() {
+    textY += 18;
+
+    if (textY > MAX_SCROLL) {
+        textEl.style.transition = "none";
+        textY = 0;
+        textEl.style.translate = "0 0px";
+
+        requestAnimationFrame(() => {
+            textEl.style.transition = "translate 0.08s linear";
+        });
+
+        return;
+    }
+
+    textEl.style.translate = `0 ${textY}px`;
 }
+
 function stopColorCycle() {
     if (cycleTimer) {
         clearInterval(cycleTimer);
         cycleTimer = null;
     }
-    document.body.classList.remove("class-0", "class-1", "class-2", "class-3");
+
+    overlay.classList.remove("class-0", "class-1", "class-2", "class-3");
 }
-document.addEventListener("touchstart", startColorCycle, { passive: true });
-document.addEventListener("touchend", stopColorCycle, { passive: true });
-document.addEventListener("touchcancel", stopColorCycle, { passive: true });
-// Force reload every 30 seconds with cache-busting timestamp
+
+function touchDetected() {
+    const hash = getCurrentHash();
+
+    updateTouchRanking(hash);
+    moveTextDown();
+
+    if (!cycleTimer) {
+        setColor();
+
+        cycleTimer = setInterval(() => {
+            setColor();
+        }, 100);
+    }
+
+    clearTimeout(stopTimer);
+
+    stopTimer = setTimeout(() => {
+        stopColorCycle();
+    }, 2000);
+}
+
+document.addEventListener("touchstart", touchDetected);
+document.addEventListener("mousedown", touchDetected);
+
+
+/* ----------------------------- */
+/* Auto refresh every 30 seconds */
+/* ----------------------------- */
+
 setInterval(() => {
-  const url = new URL(window.location.href);
-  url.searchParams.set("_t", Date.now());
-  window.location.replace(url.toString());
+    const url = new URL(window.location.href);
+    url.searchParams.set("_t", Date.now());
+    window.location.replace(url.toString());
 }, 30000);
+
 </script>
+
 </body>
 </html>
