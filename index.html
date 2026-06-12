@@ -12,24 +12,19 @@ html, body {
     margin: 0;
     width: 100%;
     height: 100%;
+    background: url(background.png);
+    background-size: cover;
 }
 body {
     display: flex;
     justify-content: flex-start;
     align-items: center;
-    background: #f7f5ee;
-    color: #1a1a1a;
+    /*background: #f7f5ee;*/
     font-family: "Noto Sans", sans-serif;
     text-align: center;
     padding: 0;
     overflow: hidden;
     box-sizing: border-box;
-    transition: background-color 0.15s, color 0.15s;
-    box-shadow: inset 0vh 0vh 4vh #5a5aff;
-}
-body.inverted {
-    background: #1a1a1a;
-    color: #f7f5ee;
 }
 body.class-0 { background-color: #ff2400; }
 body.class-1 { background-color: #fff200; }
@@ -44,8 +39,7 @@ body.class-3 { background-color: #00ef77; }
     transform: rotate(0deg) scale(0.6);
     white-space: nowrap;
     text-transform: uppercase;
-    transform-origin: left top;
-    color: inherit;
+    transform-origin: left top
 }
 </style>
 </head>
@@ -74,12 +68,11 @@ const phrases = {
     "19": "Kiengedtem a kutyát.",
     "20": "أخرجتُ الكلب."
 };
-
-const invertedPages = new Set(["3", "6", "9", "12"]);
-
 function fitText() {
     const el = document.getElementById("text");
     const availH = window.innerHeight * 0.92;
+
+    // In vertical writing mode, offsetWidth = the character height (font size dimension)
     let lo = 4, hi = 2000;
     while (hi - lo > 1) {
         const mid = (lo + hi) / 2;
@@ -97,17 +90,12 @@ function updateText() {
         hash === "13" || hash === "20"
             ? "rtl"
             : "ltr";
-    if (invertedPages.has(hash)) {
-        document.body.classList.add("inverted");
-    } else {
-        document.body.classList.remove("inverted");
-    }
     fitText();
 }
 updateText();
 window.addEventListener("hashchange", updateText);
 window.addEventListener("resize", fitText);
-
+// Touch color change while touching
 let cycleTimer = null;
 let colorIndex = 0;
 function setColor() {
@@ -132,7 +120,7 @@ function stopColorCycle() {
 document.addEventListener("touchstart", startColorCycle, { passive: true });
 document.addEventListener("touchend", stopColorCycle, { passive: true });
 document.addEventListener("touchcancel", stopColorCycle, { passive: true });
-
+// Force reload every 30 seconds with cache-busting timestamp
 setInterval(() => {
   const url = new URL(window.location.href);
   url.searchParams.set("_t", Date.now());
