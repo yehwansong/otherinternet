@@ -17,7 +17,7 @@ html, body {
 }
 
 body {
-    background: url(background.jpg);
+    background: url(background.png);
     background-size: auto 400%;
     background-repeat: no-repeat;
     background-position-x: center;
@@ -32,7 +32,10 @@ body.bg-low { background-position-y: 100%; }
 
 #overlay {
     position: fixed;
-    inset: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
     display: flex;
     justify-content: flex-start;
     align-items: center;
@@ -54,11 +57,11 @@ body.bg-low { background-position-y: 100%; }
     line-height: 0.8;
     writing-mode: vertical-lr;
     text-orientation: mixed;
-    transform: scale(0.6);
+    transform: scale(0.6) translateY(0px);
     transform-origin: left top;
     white-space: nowrap;
     text-transform: uppercase;
-    transition: translate 0.08s linear;
+    transition: transform 0.08s linear;
 }
 
 #rankDisplay {
@@ -83,42 +86,28 @@ body.bg-low { background-position-y: 100%; }
 
 <div id="rankDisplay"></div>
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
-import {
-    getDatabase,
-    ref,
-    onValue,
-    runTransaction,
-    serverTimestamp
-} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js";
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-database-compat.js"></script>
 
-/* ----------------------------- */
-/* Firebase 설정                 */
-/* ----------------------------- */
-const firebaseConfig = {
-  apiKey: "AIzaSyBb7Hf1EfZFt4ZBV7D-83ZoYh2_268-fA0",
-  authDomain: "internetmap-40f5f.firebaseapp.com",
-  databaseURL: "https://internetmap-40f5f-default-rtdb.firebaseio.com",
-  projectId: "internetmap-40f5f",
-  storageBucket: "internetmap-40f5f.firebasestorage.app",
-  messagingSenderId: "58899228247",
-  appId: "1:58899228247:web:d04ea480cc5ffbf4b06512",
-  measurementId: "G-TR5860MX5M"
+<script>
+var firebaseConfig = {
+    apiKey: "AIzaSyBb7Hf1EfZFt4ZBV7D-83ZoYh2_268-fA0",
+    authDomain: "internetmap-40f5f.firebaseapp.com",
+    databaseURL: "https://internetmap-40f5f-default-rtdb.firebaseio.com",
+    projectId: "internetmap-40f5f",
+    storageBucket: "internetmap-40f5f.firebasestorage.app",
+    messagingSenderId: "58899228247",
+    appId: "1:58899228247:web:d04ea480cc5ffbf4b06512",
+    measurementId: "G-TR5860MX5M"
 };
 
-const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
+firebase.initializeApp(firebaseConfig);
 
-const rankingRef = ref(db, "touchRanking/order");
-const lastTouchRef = ref(db, "touchRanking/lastTouch");
+var db = firebase.database();
+var rankingRef = db.ref("touchRanking/order");
+var lastTouchRef = db.ref("touchRanking/lastTouch");
 
-
-/* ----------------------------- */
-/* Text / language               */
-/* ----------------------------- */
-
-const phrases = {
+var phrases = {
     "1":  "I let the dog out.",
     "2":  "Dejé salir al perro.",
     "3":  "Ich ließ den Hund raus.",
@@ -141,123 +130,134 @@ const phrases = {
     "20": "أخرجتُ الكلب."
 };
 
-const bgGroups = {
+var bgGroups = {
     top: ["2", "7", "11", "15", "19"],
     mid_top: ["3", "5", "10", "16", "18"],
     mid: ["4", "1", "20", "17"],
     low: ["6", "8", "9", "12", "13", "14"]
 };
 
+var overlay = document.getElementById("overlay");
+var textEl = document.getElementById("text");
+
+var cycleTimer = null;
+var stopTimer = null;
+var colorIndex = 0;
+
+var textY = 0;
+var MAX_SCROLL = 3000;
+
 function getCurrentHash() {
-    const hash = window.location.hash.replace("#", "");
+    var hash = window.location.hash.replace("#", "");
     return phrases[hash] ? hash : "1";
 }
 
 function setBodyBackgroundClass(hash) {
-    document.body.classList.remove("bg-top", "bg-mid-top", "bg-mid", "bg-low");
+    document.body.className = document.body.className
+        .replace("bg-top", "")
+        .replace("bg-mid-top", "")
+        .replace("bg-mid", "")
+        .replace("bg-low", "");
 
-    if (bgGroups.top.includes(hash)) {
-        document.body.classList.add("bg-top");
-    } else if (bgGroups.mid_top.includes(hash)) {
-        document.body.classList.add("bg-mid-top");
-    } else if (bgGroups.mid.includes(hash)) {
-        document.body.classList.add("bg-mid");
-    } else if (bgGroups.low.includes(hash)) {
-        document.body.classList.add("bg-low");
+    if (bgGroups.top.indexOf(hash) !== -1) {
+        document.body.className += " bg-top";
+    } else if (bgGroups.mid_top.indexOf(hash) !== -1) {
+        document.body.className += " bg-mid-top";
+    } else if (bgGroups.mid.indexOf(hash) !== -1) {
+        document.body.className += " bg-mid";
+    } else if (bgGroups.low.indexOf(hash) !== -1) {
+        document.body.className += " bg-low";
     }
 }
 
-function fitText() {
-    const el = document.getElementById("text");
-    const availH = window.innerHeight * 0.92;
+function applyTextTransform() {
+    textEl.style.transform = "scale(0.6) translateY(" + textY + "px)";
+}
 
-    let lo = 4;
-    let hi = 2000;
+function fitText() {
+    var availH = window.innerHeight * 0.92;
+
+    var lo = 4;
+    var hi = 2000;
+    var mid;
 
     while (hi - lo > 1) {
-        const mid = (lo + hi) / 2;
-        el.style.fontSize = mid + "px";
+        mid = (lo + hi) / 2;
+        textEl.style.fontSize = mid + "px";
 
-        if (el.offsetWidth <= availH) {
+        if (textEl.offsetWidth <= availH) {
             lo = mid;
         } else {
             hi = mid;
         }
     }
 
-    el.style.fontSize = lo + "px";
+    textEl.style.fontSize = lo + "px";
+    applyTextTransform();
 }
 
 function updateText() {
-    const hash = getCurrentHash();
+    var hash = getCurrentHash();
 
-    document.getElementById("text").textContent = phrases[hash];
+    textEl.innerHTML = "";
+    textEl.appendChild(document.createTextNode(phrases[hash]));
 
     setBodyBackgroundClass(hash);
 
-    document.body.dir =
-        hash === "17" || hash === "20"
-            ? "rtl"
-            : "ltr";
+    if (hash === "17" || hash === "20") {
+        document.body.setAttribute("dir", "rtl");
+    } else {
+        document.body.setAttribute("dir", "ltr");
+    }
 
     fitText();
 }
 
-updateText();
-
-window.addEventListener("hashchange", updateText);
-window.addEventListener("resize", fitText);
-
-
-/* ----------------------------- */
-/* Firebase ranking              */
-/* ----------------------------- */
-
 function updateTouchRanking(hash) {
-    runTransaction(rankingRef, (current) => {
-        let order = Array.isArray(current) ? current : [];
+    rankingRef.transaction(function(current) {
+        var order = Array.isArray(current) ? current : [];
 
-        order = order.filter(item => item !== hash);
+        order = order.filter(function(item) {
+            return item !== hash;
+        });
+
         order.unshift(hash);
 
         return order.slice(0, 20);
     });
 
-    runTransaction(lastTouchRef, () => {
+    lastTouchRef.transaction(function() {
         return {
             hash: hash,
-            time: serverTimestamp()
+            time: firebase.database.ServerValue.TIMESTAMP
         };
     });
 }
 
-onValue(rankingRef, (snapshot) => {
-    const order = snapshot.val() || [];
-    const rankDisplay = document.getElementById("rankDisplay");
+rankingRef.on("value", function(snapshot) {
+    var order = snapshot.val() || [];
+    var rankDisplay = document.getElementById("rankDisplay");
+    var html = "";
 
-    rankDisplay.innerHTML = order
-        .map((hash, index) => `${index + 1}. #${hash}`)
-        .join("<br>");
+    for (var i = 0; i < order.length; i++) {
+        html += (i + 1) + ". #" + order[i];
+
+        if (i < order.length - 1) {
+            html += "<br>";
+        }
+    }
+
+    rankDisplay.innerHTML = html;
 });
 
-
-/* ----------------------------- */
-/* Color flash + text movement   */
-/* ----------------------------- */
-
-const overlay = document.getElementById("overlay");
-const textEl = document.getElementById("text");
-
-let cycleTimer = null;
-let stopTimer = null;
-let colorIndex = 0;
-
-let textY = 0;
-const MAX_SCROLL = 3000;
-
 function setColor() {
-    overlay.classList.remove("class-0", "class-1", "class-2", "class-3");
-    overlay.classList.add("class-" + (colorIndex % 4));
+    overlay.className = overlay.className
+        .replace("class-0", "")
+        .replace("class-1", "")
+        .replace("class-2", "")
+        .replace("class-3", "");
+
+    overlay.className += " class-" + (colorIndex % 4);
     colorIndex++;
 }
 
@@ -267,16 +267,16 @@ function moveTextDown() {
     if (textY > MAX_SCROLL) {
         textEl.style.transition = "none";
         textY = 0;
-        textEl.style.translate = "0 0px";
+        applyTextTransform();
 
-        requestAnimationFrame(() => {
-            textEl.style.transition = "translate 0.08s linear";
-        });
+        setTimeout(function() {
+            textEl.style.transition = "transform 0.08s linear";
+        }, 30);
 
         return;
     }
 
-    textEl.style.translate = `0 ${textY}px`;
+    applyTextTransform();
 }
 
 function stopColorCycle() {
@@ -285,11 +285,15 @@ function stopColorCycle() {
         cycleTimer = null;
     }
 
-    overlay.classList.remove("class-0", "class-1", "class-2", "class-3");
+    overlay.className = overlay.className
+        .replace("class-0", "")
+        .replace("class-1", "")
+        .replace("class-2", "")
+        .replace("class-3", "");
 }
 
 function touchDetected() {
-    const hash = getCurrentHash();
+    var hash = getCurrentHash();
 
     updateTouchRanking(hash);
     moveTextDown();
@@ -297,32 +301,32 @@ function touchDetected() {
     if (!cycleTimer) {
         setColor();
 
-        cycleTimer = setInterval(() => {
+        cycleTimer = setInterval(function() {
             setColor();
         }, 100);
     }
 
     clearTimeout(stopTimer);
 
-    stopTimer = setTimeout(() => {
+    stopTimer = setTimeout(function() {
         stopColorCycle();
     }, 2000);
 }
 
-document.addEventListener("touchstart", touchDetected);
-document.addEventListener("mousedown", touchDetected);
+document.addEventListener("touchstart", touchDetected, false);
+document.addEventListener("mousedown", touchDetected, false);
 
+window.addEventListener("hashchange", updateText, false);
+window.addEventListener("resize", fitText, false);
 
-/* ----------------------------- */
-/* Auto refresh every 30 seconds */
-/* ----------------------------- */
+updateText();
 
-setInterval(() => {
-    const url = new URL(window.location.href);
-    url.searchParams.set("_t", Date.now());
-    window.location.replace(url.toString());
+setInterval(function() {
+    window.location.href =
+        window.location.pathname +
+        "?_t=" + new Date().getTime() +
+        window.location.hash;
 }, 30000);
-
 </script>
 
 </body>
