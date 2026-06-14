@@ -15,18 +15,16 @@ html, body {
     width: 100%;
     height: 100%;
 }
-
 #rankDisplay{
     display: none;
 }
 body {
-    background: url(background.jpg);
+    background: url(background.png);
     background-size: auto 400%;
     background-repeat: no-repeat;
     background-position-x: center;
     overflow: hidden;
     font-family: "Noto Sans", sans-serif;
-    
 }
 
 body.bg-top { background-position-y: 0%; }
@@ -112,26 +110,26 @@ var rankingRef = db.ref("touchRanking/order");
 var lastTouchRef = db.ref("touchRanking/lastTouch");
 
 var phrases = {
-    "1":  "I let the dog out.",
-    "2":  "Dejé salir al perro.",
-    "3":  "Ich ließ den Hund raus.",
-    "4":  "犬を外に出した。",
-    "5":  "J'ai laissé sortir le chien.",
-    "6":  "Eu deixei o cachorro sair.",
-    "7":  "Я выпустил собаку.",
-    "8":  "Ho fatto uscire il cane.",
-    "9":  "Ik liet de hond naar buiten.",
-    "10": "Wypuściłem psa.",
-    "11": "Köpeği dışarı çıkardım.",
-    "12": "我把狗放出去了。",
-    "13": "Saya membiarkan anjing itu keluar.",
-    "14": "Tôi đã thả con chó ra ngoài.",
-    "15": "Pustil jsem psa ven.",
-    "16": "나는 개를 밖으로 내보냈다.",
-    "17": "من سگ را بیرون گذاشتم.",
-    "18": "Я випустив собаку.",
-    "19": "Kiengedtem a kutyát.",
-    "20": "أخرجتُ الكلب."
+  "1": "Dejé salir al perro. Corrió al patio trasero y comenzó a jugar sobre el césped. Hacía buen tiempo, así que parecía muy feliz. Lo observé durante unos minutos antes de llamarlo para que volviera a entrar. Regresó rápidamente, moviendo la cola.",
+  "2": "I let the dog out. He ran into the backyard and started playing on the grass. The weather was nice, so he seemed very happy. I watched him for a few minutes before calling him back inside. He returned quickly, wagging his tail.",
+  "3": "Ich ließ den Hund raus. Er rannte in den Hinterhof und begann auf dem Gras zu spielen. Das Wetter war schön, daher wirkte er sehr glücklich. Ich beobachtete ihn einige Minuten lang, bevor ich ihn wieder hereinrief. Er kam schnell zurück und wedelte mit dem Schwanz.",
+  "4": "犬を外に出した。犬は裏庭へ走っていき、芝生の上で遊び始めた。天気が良かったので、とても嬉しそうだった。私は数分間その様子を見てから、家の中に戻るよう呼んだ。犬はしっぽを振りながらすぐに戻ってきた。",
+  "5": "J'ai laissé sortir le chien. Il a couru dans le jardin derrière la maison et a commencé à jouer dans l'herbe. Il faisait beau, alors il semblait très heureux. Je l'ai observé pendant quelques minutes avant de le rappeler à l'intérieur. Il est revenu rapidement en remuant la queue.",
+  "6": "Eu deixei o cachorro sair. Ele correu para o quintal e começou a brincar na grama. O tempo estava agradável, então ele parecia muito feliz. Eu o observei por alguns minutos antes de chamá-lo de volta para dentro. Ele voltou rapidamente, abanando o rabo.",
+  "7": "Я выпустил собаку. Она выбежала на задний двор и начала играть на траве. Погода была хорошая, поэтому собака выглядела очень счастливой. Я наблюдал за ней несколько минут, прежде чем позвать обратно в дом. Она быстро вернулась, виляя хвостом.",
+  "8": "Ho fatto uscire il cane. È corso nel cortile sul retro e ha iniziato a giocare sull'erba. Il tempo era bello, quindi sembrava molto felice. L'ho osservato per alcuni minuti prima di chiamarlo di nuovo dentro. È tornato rapidamente, scodinzolando.",
+  "9": "Ik liet de hond naar buiten. Hij rende naar de achtertuin en begon op het gras te spelen. Het weer was mooi, dus hij leek erg gelukkig. Ik keek een paar minuten naar hem voordat ik hem weer naar binnen riep. Hij kwam snel terug, kwispelend met zijn staart.",
+  "10": "Wypuściłem psa. Pobiegł na tylne podwórko i zaczął bawić się na trawie. Pogoda była ładna, więc wydawał się bardzo szczęśliwy. Obserwowałem go przez kilka minut, zanim zawołałem go z powrotem do domu. Szybko wrócił, merdając ogonem.",
+  "11": "Köpeği dışarı çıkardım. Arka bahçeye koştu ve çimlerin üzerinde oynamaya başladı. Hava güzeldi, bu yüzden çok mutlu görünüyordu. Onu tekrar içeri çağırmadan önce birkaç dakika izledim. Kuyruğunu sallayarak hızla geri döndü.",
+  "12": "我把狗放出去了。它跑到后院，在草地上玩了起来。天气很好，所以它看起来非常开心。我看了它几分钟，然后把它叫回屋里。它摇着尾巴，很快就回来了。",
+  "13": "Saya membiarkan anjing itu keluar. Anjing itu berlari ke halaman belakang dan mulai bermain di rumput. Cuacanya bagus, jadi ia tampak sangat senang. Saya memperhatikannya selama beberapa menit sebelum memanggilnya kembali masuk. Ia segera kembali sambil mengibaskan ekornya.",
+  "14": "Tôi đã thả con chó ra ngoài. Nó chạy ra sân sau và bắt đầu chơi trên bãi cỏ. Thời tiết rất đẹp nên nó có vẻ rất vui. Tôi quan sát nó vài phút trước khi gọi nó vào trong. Nó nhanh chóng quay lại và vẫy đuôi liên tục.",
+  "15": "Pustil jsem psa ven. Rozběhl se na zadní dvůr a začal si hrát na trávě. Počasí bylo pěkné, takže vypadal velmi spokojeně. Několik minut jsem ho pozoroval, než jsem ho zavolal zpátky dovnitř. Rychle se vrátil a vrtěl ocasem.",
+  "16": "나는 개를 밖으로 내보냈다. 개는 뒷마당으로 달려가 잔디밭에서 놀기 시작했다. 날씨가 좋아서 무척 행복해 보였다. 나는 몇 분 동안 개를 지켜보다가 다시 집 안으로 들어오라고 불렀다. 개는 꼬리를 흔들며 금방 돌아왔다.",
+  "17": "من سگ را بیرون گذاشتم. او به حیاط پشتی دوید و روی چمن شروع به بازی کرد. هوا خوب بود، بنابراین خیلی خوشحال به نظر می‌رسید. چند دقیقه او را تماشا کردم و سپس صدایش زدم تا به داخل برگردد. او با تکان دادن دمش سریع برگشت.",
+  "18": "Я випустив собаку. Вона вибігла на заднє подвір'я й почала гратися на траві. Погода була гарною, тому собака виглядала дуже щасливою. Я спостерігав за нею кілька хвилин, перш ніж покликати назад до будинку. Вона швидко повернулася, виляючи хвостом.",
+  "19": "Kiengedtem a kutyát. Kiszaladt a hátsó udvarra, és játszani kezdett a füvön. Szép idő volt, ezért nagyon boldognak tűnt. Néhány percig figyeltem, mielőtt visszahívtam volna a házba. Gyorsan visszajött, miközben csóválta a farkát.",
+  "20": "أخرجتُ الكلب. ركض إلى الفناء الخلفي وبدأ يلعب على العشب. كان الطقس جميلًا، لذلك بدا سعيدًا جدًا. راقبته لبضع دقائق قبل أن أناديه ليعود إلى الداخل. عاد بسرعة وهو يهز ذيله."
 };
 
 var bgGroups = {
@@ -148,8 +146,8 @@ var cycleTimer = null;
 var stopTimer = null;
 var colorIndex = 0;
 
-var textY = 0;
 var MAX_SCROLL = 3000;
+var textY = MAX_SCROLL;  // 맨 아래에서 시작
 
 function getCurrentHash() {
     var hash = window.location.hash.replace("#", "");
@@ -214,6 +212,7 @@ function updateText() {
         document.body.setAttribute("dir", "ltr");
     }
 
+    textY = MAX_SCROLL;  // 텍스트 변경 시 다시 맨 아래로
     fitText();
 }
 
@@ -265,7 +264,7 @@ function setColor() {
     colorIndex++;
 }
 
-function moveTextDown() {
+function moveTextUp() {
     textY -= 80;  // 위로 이동
 
     if (textY < 0) {
@@ -300,7 +299,7 @@ function touchDetected() {
     var hash = getCurrentHash();
 
     updateTouchRanking(hash);
-    moveTextDown();
+    moveTextUp();  // 위로 이동
 
     if (!cycleTimer) {
         setColor();
