@@ -381,7 +381,6 @@ fakeTouchRef.on("value", function(snapshot) {
     if (!data.hash) return;
     if (!data.time) return;
 
-    // 처음 연결될 때 기존 Firebase 값을 무시
     if (!fakeTouchReady) {
         fakeTouchReady = true;
         lastFakeTouchTime = data.time;
@@ -389,13 +388,11 @@ fakeTouchRef.on("value", function(snapshot) {
     }
 
     if (data.time === lastFakeTouchTime) return;
-
     lastFakeTouchTime = data.time;
 
-    if (data.hash !== getCurrentHash()) {
-        window.location.hash = data.hash;
-        updateText();
-    }
+    // 중요: 현재 폰의 hash와 같은 신호만 반응
+    // hash는 절대 변경하지 않음
+    if (data.hash !== getCurrentHash()) return;
 
     touchDetected();
 
