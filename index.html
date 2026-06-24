@@ -88,7 +88,7 @@ body.bg-low { background-position-y: 100%; }*/
 }
 .group17 #overlay{
     filter: drop-shadow(2px 4px 46px black);
-    background: linear-gradient(-90deg, red, transparent);
+    background: linear-gradient(90deg, red, transparent);
     transition: background-color 0.05s linear;
     mix-blend-mode: hard-light;
 }
@@ -296,7 +296,7 @@ function setColor() {
 }
 
 function moveTextUp() {
-    textY -= 80;  // 위로 이동
+    textY -= 380;  // 위로 이동
 
     if (textY < 0) {
         textEl.style.transition = "none";
@@ -304,7 +304,7 @@ function moveTextUp() {
         applyTextTransform();
 
         setTimeout(function() {
-            textEl.style.transition = "transform 0.08s linear";
+            textEl.style.transition = "transform 0.5s ease-in-out";
         }, 30);
 
         return;
