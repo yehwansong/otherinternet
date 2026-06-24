@@ -366,7 +366,9 @@ document.addEventListener("mousedown", touchDetected, false);
 window.addEventListener("hashchange", updateText, false);
 window.addEventListener("resize", fitText, false);
 
-updateText();
+window.addEventListener("load", function () {
+    updateText();
+});
 
 setInterval(function() {
     window.location.href =
