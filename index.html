@@ -19,18 +19,18 @@ html, body {
     display: none;
 }
 body {
-    background: url(background.png);
-    background-size: auto 400%;
+    background: linear-gradient(white, black, black, white);
+    /*background-size: auto 400%;*/
     background-repeat: no-repeat;
     background-position-x: center;
     overflow: hidden;
     font-family: "Noto Sans", sans-serif;
 }
 
-body.bg-top { background-position-y: 0%; }
+/*body.bg-top { background-position-y: 0%; }
 body.bg-mid-top { background-position-y: 33.333%; }
 body.bg-mid { background-position-y: 66.666%; }
-body.bg-low { background-position-y: 100%; }
+body.bg-low { background-position-y: 100%; }*/
 
 #overlay {
     position: fixed;
@@ -185,7 +185,7 @@ function fitText() {
 
     while (hi - lo > 1) {
         mid = (lo + hi) / 2;
-        textEl.style.fontSize = mid + "px";
+        textEl.style.fontSize = (mid) + "px";
 
         if (textEl.offsetWidth <= availH) {
             lo = mid;
@@ -194,7 +194,7 @@ function fitText() {
         }
     }
 
-    textEl.style.fontSize = lo + "px";
+    textEl.style.fontSize = lo/2 + "px";
     applyTextTransform();
 }
 
