@@ -156,19 +156,23 @@ function getCurrentHash() {
 
 function setBodyBackgroundClass(hash) {
     document.body.className = document.body.className
-        .replace("bg-top", "")
-        .replace("bg-mid-top", "")
-        .replace("bg-mid", "")
-        .replace("bg-low", "");
+        .replace(/\bbg-top\b/g, "")
+        .replace(/\bbg-mid-top\b/g, "")
+        .replace(/\bbg-mid\b/g, "")
+        .replace(/\bbg-low\b/g, "")
+        .replace(/\bgroup\d+\b/g, "")
+        .trim();
+
+    document.body.classList.add("group" + hash);
 
     if (bgGroups.top.indexOf(hash) !== -1) {
-        document.body.className += " bg-top";
+        document.body.classList.add("bg-top");
     } else if (bgGroups.mid_top.indexOf(hash) !== -1) {
-        document.body.className += " bg-mid-top";
+        document.body.classList.add("bg-mid-top");
     } else if (bgGroups.mid.indexOf(hash) !== -1) {
-        document.body.className += " bg-mid";
+        document.body.classList.add("bg-mid");
     } else if (bgGroups.low.indexOf(hash) !== -1) {
-        document.body.className += " bg-low";
+        document.body.classList.add("bg-low");
     }
 }
 
