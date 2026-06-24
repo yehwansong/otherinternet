@@ -148,6 +148,7 @@ firebase.initializeApp(firebaseConfig);
 var db = firebase.database();
 var rankingRef = db.ref("touchRanking/order");
 var lastTouchRef = db.ref("touchRanking/lastTouch");
+var fakeTouchRef = db.ref("touchRanking/fakeTouch");
 
 var phrases = {
   "1": "J'ai laissé sortir le chien. Il a couru dans le jardin derrière la maison et a commencé à jouer dans l'herbe. Il faisait beau, alors il semblait très heureux. Je l'ai observé pendant quelques minutes avant de le rappeler à l'intérieur. Il est revenu rapidement en remuant la queue.",
@@ -369,7 +370,36 @@ window.addEventListener("resize", fitText, false);
 window.addEventListener("load", function () {
     updateText();
 });
+var lastFakeTouchTime = 0;
+var fakeTouchReady = false;
 
+fakeTouchRef.on("value", function(snapshot) {
+
+    var data = snapshot.val();
+
+    if (!data) return;
+    if (!data.hash) return;
+    if (!data.time) return;
+
+    // 처음 연결될 때 기존 Firebase 값을 무시
+    if (!fakeTouchReady) {
+        fakeTouchReady = true;
+        lastFakeTouchTime = data.time;
+        return;
+    }
+
+    if (data.time === lastFakeTouchTime) return;
+
+    lastFakeTouchTime = data.time;
+
+    if (data.hash !== getCurrentHash()) {
+        window.location.hash = data.hash;
+        updateText();
+    }
+
+    touchDetected();
+
+});
 setInterval(function() {
     window.location.href =
         window.location.pathname +
