@@ -378,6 +378,9 @@ window.addEventListener("hashchange", updateText, false);
 window.addEventListener("resize", fitText, false);
 
 window.addEventListener("load", function () {
+    if (window.location.hash === "#18") {
+    window.location.replace("#15");
+}
     updateText();
 });
 var lastFakeTouchTime = 0;
