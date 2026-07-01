@@ -163,6 +163,21 @@ var rankingRef = db.ref("touchRanking/order");
 var lastTouchRef = db.ref("touchRanking/lastTouch");
 var fakeTouchRef = db.ref("touchRanking/fakeTouch");
 
+var heartbeatRef = db.ref("touchRanking/heartbeat/" + getCurrentHash());
+
+function sendHeartbeat() {
+    heartbeatRef.set({
+        hash: getCurrentHash(),
+        page: window.location.href,
+        time: firebase.database.ServerValue.TIMESTAMP,
+        localTime: Date.now()
+    }).catch(function(err) {
+        console.log("Heartbeat failed:", err);
+    });
+}
+sendHeartbeat(); // 페이지 열릴 때 한 번 즉시 전송
+setInterval(sendHeartbeat, 5 * 60 * 1000); // 이후 5분마다
+
 var phrases = {
   "1": "J'ai laissé sortir le chien. Il a couru dans le jardin derrière la maison et a commencé à jouer dans l'herbe. Il faisait beau, alors il semblait très heureux. Je l'ai observé pendant quelques minutes avant de le rappeler à l'intérieur. Il est revenu rapidement en remuant la queue.",
   "2": "Ik liet de hond naar buiten. Hij rende naar de achtertuin en begon op het gras te spelen. Het weer was mooi, dus hij leek erg gelukkig. Ik keek een paar minuten naar hem voordat ik hem weer naar binnen riep. Hij kwam snel terug, kwispelend met zijn staart.",
@@ -174,7 +189,7 @@ var phrases = {
   "8": "Ho fatto uscire il cane. È corso nel cortile sul retro e ha iniziato a giocare sull'erba. Il tempo era bello, quindi sembrava molto felice. L'ho osservato per alcuni minuti prima di chiamarlo di nuovo dentro. È tornato rapidamente, scodinzolando.",
   "9": "Wypuściłem psa. Pobiegł na tylne podwórko i zaczął bawić się na trawie. Pogoda była ładna, więc wydawał się bardzo szczęśliwy. Obserwowałem go przez kilka minut, zanim zawołałem go z powrotem do domu. Szybko wrócił, merdając ogonem.",
   "10": "I let the dog out. He ran into the backyard and started playing on the grass. The weather was nice, so he seemed very happy. I watched him for a few minutes before calling him back inside. He returned quickly, wagging his tail.",
-  "11": "Köpeği dışarı çıkardım. Arka bahçeye koştu ve çimlerin üzerinde oynamaya başladı. Hava güzeldi, bu yüzden çok mutlu görünüyordu. Onu tekrar içeri çağırmadan önce birkaç dakika izledim. Kuyruğunu sallayarak hızla geri döndü.",
+  "11": "Kiengedtem a kutyát. Kiszaladt a hátsó udvarra, és játszani kezdett a füvön. Szép idő volt, ezért nagyon boldognak tűnt. Néhány percig figyeltem, mielőtt visszahívtam volna a házba. Gyorsan visszajött, miközben csóválta a farkát.",
   "12": "أخرجتُ الكلب. ركض إلى الفناء الخلفي وبدأ يلعب على العشب. كان الطقس جميلًا، لذلك بدا سعيدًا جدًا. راقبته لبضع دقائق قبل أن أناديه ليعود إلى الداخل. عاد بسرعة وهو يهز ذيله.",
   "13": "Saya membiarkan anjing itu keluar. Anjing itu berlari ke halaman belakang dan mulai bermain di rumput. Cuacanya bagus, jadi ia tampak sangat senang. Saya memperhatikannya selama beberapa menit sebelum memanggilnya kembali masuk. Ia segera kembali sambil mengibaskan ekornya.",
   "14": "Tôi đã thả con chó ra ngoài. Nó chạy ra sân sau và bắt đầu chơi trên bãi cỏ. Thời tiết rất đẹp nên nó có vẻ rất vui. Tôi quan sát nó vài phút trước khi gọi nó vào trong. Nó nhanh chóng quay lại và vẫy đuôi liên tục.",
@@ -182,12 +197,12 @@ var phrases = {
   "16": "나는 개를 밖으로 내보냈다. 개는 뒷마당으로 달려가 잔디밭에서 놀기 시작했다. 날씨가 좋아서 무척 행복해 보였다. 나는 몇 분 동안 개를 지켜보다가 다시 집 안으로 들어오라고 불렀다. 개는 꼬리를 흔들며 금방 돌아왔다.",
   "17": "من سگ را بیرون گذاشتم. او به حیاط پشتی دوید و روی چمن شروع به بازی کرد. هوا خوب بود، بنابراین خیلی خوشحال به نظر می‌رسید. چند دقیقه او را تماشا کردم و سپس صدایش زدم تا به داخل برگردد. او با تکان دادن دمش سریع برگشت.",
   "18": "Я випустив собаку. Вона вибігла на заднє подвір'я й почала гратися на траві. Погода була гарною, тому собака виглядала дуже щасливою. Я спостерігав за нею кілька хвилин, перш ніж покликати назад до будинку. Вона швидко повернулася, виляючи хвостом.",
-  "19": "Kiengedtem a kutyát. Kiszaladt a hátsó udvarra, és játszani kezdett a füvön. Szép idő volt, ezért nagyon boldognak tűnt. Néhány percig figyeltem, mielőtt visszahívtam volna a házba. Gyorsan visszajött, miközben csóválta a farkát.",
+  "19": "Köpeği dışarı çıkardım. Arka bahçeye koştu ve çimlerin üzerinde oynamaya başladı. Hava güzeldi, bu yüzden çok mutlu görünüyordu. Onu tekrar içeri çağırmadan önce birkaç dakika izledim. Kuyruğunu sallayarak hızla geri döndü.",
   "20": "我把狗放出去了。它跑到后院，在草地上玩了起来。天气很好，所以它看起来非常开心。我看了它几分钟，然后把它叫回屋里。它摇着尾巴，很快就回来了。",
 };
 
 var bgGroups = {
-    top: ["2", "11", "19","5", "16"],
+    top: ["2", "11", "19", "5", "16"],
     mid_top: ["3", "10", "18"],
     mid: ["4", "1", "20", "17"],
     low: ["6", "8", "15", "7", "9", "12", "13", "14"]
@@ -411,12 +426,45 @@ fakeTouchRef.on("value", function(snapshot) {
     touchDetected();
 
 });
-setInterval(function() {
-    window.location.href =
-        window.location.pathname +
-        "?_t=" + new Date().getTime() +
-        window.location.hash;
-}, 30000);
+const REFRESH_INTERVAL = 60 * 60 * 1000;
+const RETRY_INTERVAL = 10 * 60 * 1000;
+
+function scheduleRefresh(delay) {
+    setTimeout(attemptRefresh, delay);
+}
+
+function attemptRefresh() {
+
+    if (!navigator.onLine) {
+        console.log("Offline. Retry in 10 min.");
+        scheduleRefresh(RETRY_INTERVAL);
+        return;
+    }
+
+    firebase.database().ref(".info/connected").once("value")
+        .then(function(snapshot) {
+
+            if (snapshot.val()) {
+                console.log("Firebase connected. Reload.");
+
+                window.location.replace(
+                    window.location.pathname +
+                    "?_t=" + Date.now() +
+                    window.location.hash
+                );
+            } else {
+                console.log("Firebase disconnected. Retry in 10 min.");
+                scheduleRefresh(RETRY_INTERVAL);
+            }
+
+        })
+        .catch(function() {
+            console.log("Check failed. Retry in 10 min.");
+            scheduleRefresh(RETRY_INTERVAL);
+        });
+}
+
+scheduleRefresh(REFRESH_INTERVAL);
 </script>
 
 </body>
