@@ -163,20 +163,6 @@ var rankingRef = db.ref("touchRanking/order");
 var lastTouchRef = db.ref("touchRanking/lastTouch");
 var fakeTouchRef = db.ref("touchRanking/fakeTouch");
 
-var heartbeatRef = db.ref("touchRanking/heartbeat/" + getCurrentHash());
-
-function sendHeartbeat() {
-    heartbeatRef.set({
-        hash: getCurrentHash(),
-        page: window.location.href,
-        time: firebase.database.ServerValue.TIMESTAMP,
-        localTime: Date.now()
-    }).catch(function(err) {
-        console.log("Heartbeat failed:", err);
-    });
-}
-sendHeartbeat(); // 페이지 열릴 때 한 번 즉시 전송
-setInterval(sendHeartbeat, 5 * 60 * 1000); // 이후 5분마다
 
 var phrases = {
   "1": "J'ai laissé sortir le chien. Il a couru dans le jardin derrière la maison et a commencé à jouer dans l'herbe. Il faisait beau, alors il semblait très heureux. Je l'ai observé pendant quelques minutes avant de le rappeler à l'intérieur. Il est revenu rapidement en remuant la queue.",
@@ -222,6 +208,21 @@ function getCurrentHash() {
     var hash = window.location.hash.replace("#", "");
     return phrases[hash] ? hash : "1";
 }
+
+var heartbeatRef = db.ref("touchRanking/heartbeat/" + getCurrentHash());
+
+function sendHeartbeat() {
+    heartbeatRef.set({
+        hash: getCurrentHash(),
+        page: window.location.href,
+        time: firebase.database.ServerValue.TIMESTAMP,
+        localTime: Date.now()
+    }).catch(function(err) {
+        console.log("Heartbeat failed:", err);
+    });
+}
+sendHeartbeat();
+setInterval(sendHeartbeat, 5 * 60 * 1000);
 
 function setBodyBackgroundClass(hash) {
     document.body.className = document.body.className
